@@ -13,7 +13,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/chat")
-                .setAllowedOrigins("http://localhost:5173","https://chat-app-frontene.vercel.app")
+                .setAllowedOrigins("http://localhost:5173","https://chat-app-frontene.vercel.app","https://chat-app-frontene-b9m3xf7ue-vansh12125s-projects.vercel.app/")
                 .withSockJS();
     }
 
