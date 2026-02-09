@@ -1,9 +1,12 @@
 package org.example.chatapp.Utils;
 
+import org.springframework.context.annotation.Configuration;
+
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import java.util.Base64;
 
+@Configuration
 public class CryptoUtil {
 
     private static final String ALGORITHM = "AES";

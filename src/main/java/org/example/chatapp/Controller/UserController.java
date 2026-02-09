@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpSession;
 import org.example.chatapp.Model.User;
 import org.example.chatapp.Repository.UserRepository;
 import org.example.chatapp.Service.UserService;
+import org.example.chatapp.Utils.JwtUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +17,7 @@ public class UserController {
 
     private final UserService service;
     private final UserRepository userRepo;
+
     public UserController(UserService service, UserRepository userRepo) {
         this.service = service;
         this.userRepo = userRepo;
@@ -36,7 +38,7 @@ public class UserController {
                     .body("Username and password required");
         }
 
-        User user = service.register(username, password);
+        User user = service.register(username.toLowerCase(), password);
 
         if (user == null) {
             return ResponseEntity
@@ -49,19 +51,26 @@ public class UserController {
 
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(
-            @RequestBody Map<String, String> body,
-            HttpSession session
-    ) {
+    public ResponseEntity<?> login(@RequestBody Map<String, String> body) {
+
         User user = service.login(
-                body.get("username"),
+                body.get("username").toLowerCase(),
                 body.get("password")
         );
-        if (user == null)
-            return new ResponseEntity<>("No User Found!", HttpStatus.BAD_REQUEST);
-        session.setAttribute("USER", user);
 
-        return ResponseEntity.ok(user);
+        if (user == null) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body("Invalid credentials");
+        }
+
+        String token = JwtUtil.generateToken(user.getUsername());
+        return ResponseEntity.ok(
+                Map.of(
+                        "token", token,
+                        "user", user
+                )
+        );
     }
 
 
@@ -83,6 +92,7 @@ public class UserController {
         session.invalidate();
         return ResponseEntity.ok("Logged out");
     }
+
     @GetMapping("/profile")
     public ResponseEntity<?> getProfile(HttpSession session) {
         User user = (User) session.getAttribute("USER");
@@ -119,13 +129,11 @@ public class UserController {
     }
 
     @PostMapping("/join")
-    public ResponseEntity<?> updateJoin(@RequestBody Map<String, String> body,HttpSession session){
-        String username=body.get("username");
-        String roomId=body.get("roomId");
-        User user=service.updateJoinedRoom(username,roomId);
-        session.setAttribute("USER", user);
-        return new ResponseEntity<>(user,HttpStatus.OK);
+    public ResponseEntity<?> updateJoin(@RequestBody Map<String, String> body) {
+        String username = body.get("username");
+        String roomId = body.get("roomId");
+
+        User user = service.updateJoinedRoom(username, roomId);
+        return ResponseEntity.ok(user);
     }
-
-
 }
