@@ -1,5 +1,6 @@
 package org.example.chatapp.Controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.example.chatapp.Model.User;
 import org.example.chatapp.Repository.UserRepository;
@@ -75,15 +76,17 @@ public class UserController {
 
 
     @GetMapping("/me")
-    public ResponseEntity<?> currentUser(HttpSession session) {
+    public ResponseEntity<?> currentUser(HttpServletRequest request) {
 
-        User user = (User) session.getAttribute("USER");
+        String username = (String) request.getAttribute("username");
 
-        if (user == null) {
+        if (username == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        return ResponseEntity.ok(user);
+        return userRepo.findByUsername(username)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
     }
 
 
@@ -94,38 +97,42 @@ public class UserController {
     }
 
     @GetMapping("/profile")
-    public ResponseEntity<?> getProfile(HttpSession session) {
-        User user = (User) session.getAttribute("USER");
+    public ResponseEntity<?> getProfile(HttpServletRequest request) {
 
-        if (user == null) {
+        String username = (String) request.getAttribute("username");
+
+        if (username == null) {
             return ResponseEntity.status(401).build();
         }
 
-        return ResponseEntity.ok(user);
+        return userRepo.findByUsername(username)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.status(401).build());
     }
+
 
     @PutMapping("/profile")
     public ResponseEntity<?> updateProfile(
             @RequestBody Map<String, String> body,
-            HttpSession session
+            HttpServletRequest request
     ) {
-        User user = (User) session.getAttribute("USER");
-
-        if (user == null) {
+        String username = (String) request.getAttribute("username");
+        if (username == null) {
             return ResponseEntity.status(401).build();
         }
+        try {
+            return ResponseEntity.ok(
+                    service.updateProfile(username, body)
+            );
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).body(e.getMessage());
 
-        String newUsername = body.get("username");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
 
-        if (newUsername == null || !newUsername.matches("^[a-zA-Z0-9]{3,20}$")) {
-            return ResponseEntity.badRequest().body("Invalid username");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(401).build();
         }
-
-        user.setUsername(newUsername);
-        userRepo.save(user);
-        session.setAttribute("USER", user);
-
-        return ResponseEntity.ok(user);
     }
 
     @PostMapping("/join")
@@ -136,4 +143,22 @@ public class UserController {
         User user = service.updateJoinedRoom(username, roomId);
         return ResponseEntity.ok(user);
     }
+
+    @PostMapping("/leave")
+    public ResponseEntity<?> leaveRoom(
+            @RequestBody Map<String, String> body,
+            HttpServletRequest request
+    ) {
+        String username = (String) request.getAttribute("username");
+        String roomId = body.get("roomId");
+
+        if (username == null || roomId == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        User user = service.removeJoinedRoom(username, roomId);
+
+        return ResponseEntity.ok(user);
+    }
+
 }

@@ -27,7 +27,8 @@ public class ChatController {
     ) {
         Message saved = messageService.saveMessage(
                 roomId,
-                body.get("sender"),
+                body.get("senderUsername"),
+                body.get("senderId"),
                 body.get("content")
         );
 

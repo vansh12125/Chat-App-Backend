@@ -18,10 +18,11 @@ public class MessageService {
         this.messageRepo = messageRepo;
     }
 
-    public Message saveMessage(String roomId, String sender, String content) {
+    public Message saveMessage(String roomId,String senderUsername, String senderId, String content) {
         Message msg = new Message();
         msg.setRoomId(roomId);
-        msg.setSender(sender);
+        msg.setSenderUsername(senderUsername);
+        msg.setSenderId(senderId);
         msg.setContent(
                 CryptoUtil.encrypt(content)
         );

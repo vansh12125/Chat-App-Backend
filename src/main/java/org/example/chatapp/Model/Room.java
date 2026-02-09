@@ -1,7 +1,6 @@
 package org.example.chatapp.Model;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
@@ -10,7 +9,6 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Document
 @Data
@@ -27,5 +25,9 @@ public class Room {
     private LocalDateTime createdAt=LocalDateTime.now();
 
     @NonNull
-    private String createdBy;
+    private String createdByUserId;
+
+    @NonNull
+    private String createdByUsername;
+
 }

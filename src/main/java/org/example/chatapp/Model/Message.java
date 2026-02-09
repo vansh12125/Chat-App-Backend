@@ -21,7 +21,10 @@ public class Message {
     private String content;
 
     @NotBlank
-    private String sender;
+    private String senderUsername;
+
+    @NotBlank
+    private String senderId;
 
     @NotBlank
     private String roomId;

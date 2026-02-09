@@ -22,9 +22,8 @@ public class JwtFilter extends OncePerRequestFilter {
         String path = request.getServletPath();
 
         if (
-                path.startsWith("/auth") ||
-                        path.startsWith("/rooms") ||
-                        path.startsWith("/messages") ||
+                path.equals("/auth/login") ||
+                        path.equals("/auth/register") ||
                         path.startsWith("/chat") ||
                         path.startsWith("/topic") ||
                         path.startsWith("/app")
@@ -41,7 +40,8 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         try {
-            JwtUtil.validateAndGetUsername(header.substring(7));
+            String username = JwtUtil.validateAndGetUsername(header.substring(7));
+            request.setAttribute("username", username);
         } catch (Exception e) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
