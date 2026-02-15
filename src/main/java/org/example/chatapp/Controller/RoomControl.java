@@ -58,7 +58,7 @@ public class RoomControl {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         Room room = new Room();
-        room.setRoomId("chat-" + UUID.randomUUID().toString().substring(0, 6));
+        room.setRoomId(UUID.randomUUID().toString().substring(0, 6));
         room.setRoomName(roomName);
         room.setCreatedByUserId(createdBy);
         room.setCreatedByUsername(username);

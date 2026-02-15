@@ -161,4 +161,31 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
+    @DeleteMapping("/delete")
+    public ResponseEntity<?> deleteAccount(
+            @RequestBody Map<String, String> body,
+            HttpServletRequest request
+    ) {
+
+        String username = (String) request.getAttribute("username");
+
+        if (username == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        try {
+            service.deleteAccount(username, body.get("password"));
+            return ResponseEntity.ok("Account deleted successfully");
+
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).body(e.getMessage());
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(401).build();
+        }
+    }
+
 }

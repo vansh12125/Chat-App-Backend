@@ -13,6 +13,9 @@ import java.util.Map;
 
 @Service
 public class UserService {
+    private static final String PASSWORD_REGEX = "^\\S{6,20}$";
+    private static final String USERNAME_REGEX =
+            "^(?=.{3,20}$)(?!.*\\.\\.)(?!.*__)[a-zA-Z0-9](?:[a-zA-Z0-9._]*[a-zA-Z0-9])$";
 
     private final UserRepository repo;
     private final PasswordEncoder encoder;
@@ -29,6 +32,17 @@ public class UserService {
 
         if (repo.findByUsername(username).isPresent()) {
             return null;
+        }
+        if (!username.matches(USERNAME_REGEX)) {
+            throw new IllegalArgumentException(
+                    "Invalid username format"
+            );
+        }
+
+        if (!password.matches(PASSWORD_REGEX)) {
+            throw new IllegalArgumentException(
+                    "Password must be 6–20 characters with no spaces"
+            );
         }
 
         User user = new User();
@@ -85,7 +99,7 @@ public class UserService {
         String newUsername = body.get("username");
         if (newUsername != null) {
 
-            if (!newUsername.matches("^[a-zA-Z0-9]{3,20}$")) {
+            if (!newUsername.matches(USERNAME_REGEX)) {
                 throw new IllegalArgumentException("Invalid username");
             }
             String normalized = newUsername.toLowerCase();
@@ -100,16 +114,16 @@ public class UserService {
         String currentPassword = body.get("currentPassword");
         String newPassword = body.get("newPassword");
         if (currentPassword != null || newPassword != null) {
-
             if (currentPassword == null || newPassword == null) {
                 throw new IllegalArgumentException("Current and new password required");
             }
             if (!encoder.matches(currentPassword, user.getPassword())) {
                 throw new SecurityException("Current password is incorrect");
             }
-            if (!newPassword.matches(
-                    "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d@$!%*?&]{6,}$")) {
-                throw new IllegalArgumentException("Weak password");
+            if (!newPassword.matches(PASSWORD_REGEX)) {
+                throw new IllegalArgumentException(
+                        "Password must be 6–20 characters with no spaces"
+                );
             }
             user.setPassword(encoder.encode(newPassword));
             updated = true;
@@ -143,7 +157,19 @@ public class UserService {
         return user;
     }
 
+    public void deleteAccount(String usernameFromToken, String password) {
 
+        User user = repo.findByUsername(usernameFromToken)
+                .orElseThrow(() -> new RuntimeException("UNAUTHORIZED"));
 
+        if (password == null || password.isBlank()) {
+            throw new IllegalArgumentException("Password is required");
+        }
 
+        if (!encoder.matches(password, user.getPassword())) {
+            throw new SecurityException("Incorrect password");
+        }
+
+        repo.delete(user);
+    }
 }

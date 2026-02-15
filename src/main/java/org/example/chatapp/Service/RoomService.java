@@ -22,13 +22,11 @@ public class RoomService {
         return repo.findById(id).orElse(null);
     }
 
-    public boolean deleteRoomById(String id){
+    public void deleteRoomById(String id){
         Room room=getRoomById(id);
         if(room!=null){
             repo.delete(room);
-            return true;
         }
-        return false;
     }
 
     public List<Room> getAllRooms() {
