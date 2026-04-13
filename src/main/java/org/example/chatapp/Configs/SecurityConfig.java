@@ -30,7 +30,8 @@ public class SecurityConfig {
                                 "/app/**",
                                 "/rooms/**",
                                 "/messages/**",
-                                "/auth/**"
+                                "/auth/**",
+                                "/api/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
